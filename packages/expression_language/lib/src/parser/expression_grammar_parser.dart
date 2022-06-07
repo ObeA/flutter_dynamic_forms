@@ -1,4 +1,3 @@
-import 'package:expression_language/src/expressions/expression_provider.dart';
 import 'package:expression_language/src/expressions/expressions.dart';
 import 'package:expression_language/src/grammar/expression_grammar_definition.dart';
 import 'package:expression_language/src/number_type/decimal.dart';
@@ -6,16 +5,16 @@ import 'package:expression_language/src/number_type/integer.dart';
 import 'package:expression_language/src/number_type/number.dart';
 import 'package:expression_language/src/parser/function_expression_factories/default_function_expression_factories.dart';
 import 'package:expression_language/src/parser/expression_factory.dart';
-import 'package:expression_language/src/parser/expression_parser_exceptions.dart';
 import 'package:expression_language/src/parser/function_expression_factory.dart';
 import 'package:petitparser/petitparser.dart';
 
 class ExpressionGrammarParser extends ExpressionGrammarDefinition {
-  final Map<String, ExpressionProviderElement> expressionProviderElementMap;
+  final ExpressionProviderElement expressionProviderElementMap;
   final List<FunctionExpressionFactory> customFunctionExpressionFactories;
   final Map<String, FunctionExpressionFactoryMethod> _expressionFactories;
-  ExpressionGrammarParser(
-    this.expressionProviderElementMap, {
+
+  ExpressionGrammarParser({
+    required this.expressionProviderElementMap, // TODO: rename
     this.customFunctionExpressionFactories = const [],
   }) : _expressionFactories = _createFunctionExpressionFactoriesMap(
             customFunctionExpressionFactories);
@@ -320,32 +319,39 @@ class ExpressionGrammarParser extends ExpressionGrammarDefinition {
 
   @override
   Parser reference() => super.reference().map((c) {
-        var expressionPath = <String>[];
-        String elementId = c[1];
-        expressionPath.add(elementId);
-        var expressionProviderElement = expressionProviderElementMap[elementId];
-        if (expressionProviderElement == null) {
-          throw NullReferenceException(
-              'Reference named {$elementId} does not exist.');
+        // var expressionPath = <String>[];
+        // const base = 0;
+        // String elementId = c[base];
+        // expressionPath.add(elementId);
+        if (c is! String) {
+          throw UnknownExpressionTypeException('Reference must be a string');
         }
-        ExpressionProvider? expressionProvider;
-        if (c[2].length == 0) {
-          expressionProvider =
-              expressionProviderElement.getExpressionProvider();
-          return createDelegateExpression(expressionPath, expressionProvider);
-        }
-        for (var i = 0; i < c[2].length; i++) {
-          var propertyName = c[2][i][1];
-          expressionPath.add(propertyName);
-          expressionProvider =
-              expressionProviderElement!.getExpressionProvider(propertyName);
-          if (expressionProvider
-              is ExpressionProvider<ExpressionProviderElement>) {
-            expressionProviderElement =
-                expressionProvider.getExpression().evaluate();
-          }
-        }
-        return createDelegateExpression(expressionPath, expressionProvider);
+
+        final parts = c.split('.');
+        final expressionProvider =
+            expressionProviderElementMap.getExpressionProvider(c);
+        // if (expressionProviderElement == null) {
+        //   throw NullReferenceException(
+        //       'Reference named {$elementId} does not exist.');
+        // }
+        // ExpressionProvider? expressionProvider;
+        // if (c[base + 1].length == 0) {
+        //   expressionProvider =
+        //       expressionProviderElement.getExpressionProvider();
+        //   return createDelegateExpression(expressionPath, expressionProvider);
+        // }
+        // for (var i = 0; i < c[base + 1].length; i++) {
+        //   var propertyName = c[base + 1][i][1];
+        //   expressionPath.add(propertyName);
+        //   expressionProvider =
+        //       expressionProviderElement!.getExpressionProvider(propertyName);
+        //   if (expressionProvider
+        //       is ExpressionProvider<ExpressionProviderElement>) {
+        //     expressionProviderElement =
+        //         expressionProvider.getExpression().evaluate();
+        //   }
+        // }
+        return createDelegateExpression(parts, expressionProvider);
       });
 
   @override

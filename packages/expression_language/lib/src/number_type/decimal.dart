@@ -15,6 +15,9 @@ class Decimal extends Number {
   factory Decimal.fromInt(int value) =>
       Decimal._fromRational(Rational(BigInt.from(value)));
 
+  factory Decimal.fromBigInt(BigInt value) =>
+      Decimal._fromRational(Rational(value));
+
   factory Decimal.fromDouble(double value) =>
       Decimal._fromRational(Rational.parse(value.toString()));
 
@@ -54,7 +57,7 @@ class Decimal extends Number {
   }
 
   @override
-  String toString() => _rational.toDecimalString();
+  String toString() => _rational.toString();
 
   @override
   int compareTo(Number other) {
@@ -85,9 +88,9 @@ class Decimal extends Number {
       Decimal._fromRational(_rational / _convertToDecimal(other)._rational);
 
   @override
-  Integer operator ~/(Number other) =>
-      Decimal._fromRational(_rational ~/ _convertToDecimal(other)._rational)
-          .toInteger();
+  Integer operator ~/(Number other) => Decimal._fromRational(
+          (_rational ~/ _convertToDecimal(other)._rational).toRational())
+      .toInteger();
 
   @override
   bool operator <(Number other) =>
@@ -106,13 +109,13 @@ class Decimal extends Number {
       _rational >= _convertToDecimal(other)._rational;
 
   @override
-  bool get isNaN => _rational.isNaN;
+  bool get isNaN => false; // TODO
 
   @override
-  bool get isInfinite => _rational.isInfinite;
+  bool get isInfinite => _rational.denominator == BigInt.zero;
 
   @override
-  bool get isNegative => _rational.isNegative;
+  bool get isNegative => _rational.signum == -1;
 
   @override
   Number abs() => Decimal._fromRational(_rational.abs());
@@ -121,20 +124,20 @@ class Decimal extends Number {
   Integer get sign => Integer(_rational.signum);
 
   @override
-  Integer ceil() => Decimal._fromRational(_rational.ceil()).toInteger();
+  Integer ceil() => Decimal.fromBigInt(_rational.ceil()).toInteger();
 
   @override
-  Integer floor() => Decimal._fromRational(_rational.floor()).toInteger();
+  Integer floor() => Decimal.fromBigInt(_rational.floor()).toInteger();
 
   @override
   Number remainder(Number other) => Decimal._fromRational(
       _rational.remainder(Rational.parse(other.toString())));
 
   @override
-  Integer round() => Decimal._fromRational(_rational.round()).toInteger();
+  Integer round() => Decimal.fromBigInt(_rational.round()).toInteger();
 
   @override
-  Integer toInteger() => Integer(_rational.toInt());
+  Integer toInteger() => Decimal.fromBigInt(_rational.toBigInt()).toInteger();
 
   @override
   int toInt() => toInteger().value;
@@ -147,19 +150,16 @@ class Decimal extends Number {
   double toDouble() => _rational.toDouble();
 
   @override
-  String toStringAsExponential([int? fractionDigits]) =>
-      _rational.toStringAsExponential(fractionDigits);
+  String toStringAsExponential([int? fractionDigits]) => _rational.toString();
 
   @override
-  String toStringAsFixed(int fractionDigits) =>
-      _rational.toStringAsFixed(fractionDigits);
+  String toStringAsFixed(int fractionDigits) => _rational.toString();
 
   @override
-  String toStringAsPrecision(int precision) =>
-      _rational.toStringAsPrecision(precision);
+  String toStringAsPrecision(int precision) => _rational.toString();
 
   @override
-  Integer truncate() => Decimal._fromRational(_rational.truncate()).toInteger();
+  Integer truncate() => Decimal.fromBigInt(_rational.truncate()).toInteger();
 
   @override
   Number roundWithPrecision(int precision,

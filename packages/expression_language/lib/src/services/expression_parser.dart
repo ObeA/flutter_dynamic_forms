@@ -7,11 +7,13 @@ class ExpressionParser {
   ExpressionParser._internal(this.parser);
 
   factory ExpressionParser(
-    Map<String, ExpressionProviderElement> elementMap, {
+    ExpressionProviderElement expressionProviderElement, {
     List<FunctionExpressionFactory> expressionFactories = const [],
   }) {
-    var expressionGrammarDefinition = ExpressionGrammarParser(elementMap,
-        customFunctionExpressionFactories: expressionFactories);
+    var expressionGrammarDefinition = ExpressionGrammarParser(
+      expressionProviderElementMap: expressionProviderElement,
+      customFunctionExpressionFactories: expressionFactories,
+    );
     var parser = expressionGrammarDefinition.build();
     return ExpressionParser._internal(parser);
   }
