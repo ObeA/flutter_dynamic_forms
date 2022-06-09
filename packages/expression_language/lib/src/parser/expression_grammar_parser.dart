@@ -16,29 +16,19 @@ class ExpressionGrammarParser extends ExpressionGrammarDefinition {
   ExpressionGrammarParser({
     required this.expressionProviderElementMap, // TODO: rename
     this.customFunctionExpressionFactories = const [],
-  }) : _expressionFactories = _createFunctionExpressionFactoriesMap(
-            customFunctionExpressionFactories);
+  }) : _expressionFactories =
+            _createFunctionExpressionFactoriesMap(customFunctionExpressionFactories);
 
-  static Map<String, FunctionExpressionFactoryMethod>
-      _createFunctionExpressionFactoriesMap(
-          List<FunctionExpressionFactory> customFunctionExpressionFactories) {
+  static Map<String, FunctionExpressionFactoryMethod> _createFunctionExpressionFactoriesMap(
+      List<FunctionExpressionFactory> customFunctionExpressionFactories) {
     var customMap = {
-      for (var v in customFunctionExpressionFactories)
-        v.functionName: v.createExpression
+      for (var v in customFunctionExpressionFactories) v.functionName: v.createExpression
     };
     var defaultMap = {
-      for (var v in getDefaultFunctionExpressionFactories())
-        v.functionName: v.createExpression
+      for (var v in getDefaultFunctionExpressionFactories()) v.functionName: v.createExpression
     };
     return defaultMap..addAll(customMap);
   }
-
-  @override
-  Parser failureState() => super.failureState().map((c) {
-        var lastSeenSymbol = (c is List && c.length >= 2) ? c[1] : c;
-        throw InvalidSyntaxException(
-            'Invalid syntax, last seen symbol: {$lastSeenSymbol} ');
-      });
 
   @override
   Parser additiveExpression() => super.additiveExpression().map((c) {
@@ -50,18 +40,16 @@ class ExpressionGrammarParser extends ExpressionGrammarDefinition {
               left = PlusNumberExpression(left, right);
               continue;
             }
-            if (left is Expression<String> && right is Expression<String>) {
+            if (left is Expression<String?> && right is Expression<String?>) {
               left = PlusStringExpression(left, right);
               continue;
             }
             if (left is Expression<String> && right is Expression<Number>) {
-              left =
-                  PlusStringExpression(left, ToStringFunctionExpression(right));
+              left = PlusStringExpression(left, ToStringFunctionExpression(right));
               continue;
             }
             if (left is Expression<Number> && right is Expression<String>) {
-              left =
-                  PlusStringExpression(ToStringFunctionExpression(left), right);
+              left = PlusStringExpression(ToStringFunctionExpression(left), right);
               continue;
             }
             if (left is Expression<Duration> && right is Expression<DateTime>) {
@@ -82,32 +70,26 @@ class ExpressionGrammarParser extends ExpressionGrammarDefinition {
               left = MinusNumberExpression(left, right);
               continue;
             }
-            if ((left is Expression<DateTime>) &&
-                (right is Expression<Duration>)) {
+            if ((left is Expression<DateTime>) && (right is Expression<Duration>)) {
               left = DateTimeMinusDurationExpression(left, right);
               continue;
             }
-            if ((left is Expression<Duration>) &&
-                (right is Expression<Duration>)) {
+            if ((left is Expression<Duration>) && (right is Expression<Duration>)) {
               left = MinusDurationExpression(left, right);
               continue;
             }
           }
-          throw UnknownExpressionTypeException(
-              'Unknown additive expression type');
+          throw UnknownExpressionTypeException('Unknown additive expression type');
         }
         return left;
       });
 
   @override
-  Parser multiplicativeExpression() =>
-      super.multiplicativeExpression().map((c) {
+  Parser multiplicativeExpression() => super.multiplicativeExpression().map((c) {
         Expression left = c[0];
         for (var item in c[1]) {
           Expression right = item[1];
-          if ((item[0] is List) &&
-              (item[0][0].value == '~') &&
-              (item[0][1].value == '/')) {
+          if ((item[0] is List) && (item[0][0].value == '~') && (item[0][1].value == '/')) {
             left = IntegerDivisionNumberExpression(
                 left as Expression<Number>, right as Expression<Number>);
             continue;
@@ -135,19 +117,16 @@ class ExpressionGrammarParser extends ExpressionGrammarDefinition {
             continue;
           }
           if (item[0].value == '%') {
-            left = ModuloExpression(
-                left as Expression<Number>, right as Expression<Number>);
+            left = ModuloExpression(left as Expression<Number>, right as Expression<Number>);
             continue;
           }
-          throw UnknownExpressionTypeException(
-              'Unknown multiplicative expression type');
+          throw UnknownExpressionTypeException('Unknown multiplicative expression type');
         }
         return left;
       });
 
   @override
-  Parser expressionInParentheses() =>
-      super.expressionInParentheses().map((c) => c[1]);
+  Parser expressionInParentheses() => super.expressionInParentheses().map((c) => c[1]);
 
   @override
   Parser unaryExpression() => super.unaryExpression().map((c) {
@@ -169,8 +148,7 @@ class ExpressionGrammarParser extends ExpressionGrammarDefinition {
       });
 
   @override
-  Parser postfixOperatorExpression() =>
-      super.postfixOperatorExpression().map((c) {
+  Parser postfixOperatorExpression() => super.postfixOperatorExpression().map((c) {
         if (c[1] == null) {
           return c[0];
         }
@@ -190,12 +168,10 @@ class ExpressionGrammarParser extends ExpressionGrammarDefinition {
         Expression expression = c[0];
         for (var item in c[1]) {
           if (item[0].value == '||') {
-            expression =
-                LogicalOrExpression(expression as Expression<bool>, item[1]);
+            expression = LogicalOrExpression(expression as Expression<bool>, item[1]);
             continue;
           }
-          throw UnknownExpressionTypeException(
-              'Unknown logical-or expression type');
+          throw UnknownExpressionTypeException('Unknown logical-or expression type');
         }
         return expression;
       });
@@ -205,12 +181,10 @@ class ExpressionGrammarParser extends ExpressionGrammarDefinition {
         Expression expression = c[0];
         for (var item in c[1]) {
           if (item[0].value == '&&') {
-            expression =
-                LogicalAndExpression(expression as Expression<bool>, item[1]);
+            expression = LogicalAndExpression(expression as Expression<bool>, item[1]);
             continue;
           }
-          throw UnknownExpressionTypeException(
-              'Unknown logical-and expression type');
+          throw UnknownExpressionTypeException('Unknown logical-and expression type');
         }
         return expression;
       });
@@ -226,37 +200,28 @@ class ExpressionGrammarParser extends ExpressionGrammarDefinition {
         if (item[0].value == '==') {
           if ((left is Expression<Number>) && (right is Expression<Number>)) {
             left = EqualNumberExpression(left, right);
-          } else if ((left is Expression<bool>) &&
-              (right is Expression<bool>)) {
+          } else if ((left is Expression<bool>) && (right is Expression<bool>)) {
             left = EqualBoolExpression(left, right);
-          } else if ((left is Expression<String>) &&
-              (right is Expression<String>)) {
+          } else if ((left is Expression<String>) && (right is Expression<String>)) {
             left = EqualStringExpression(left, right);
-          } else if ((left is Expression<DateTime>) &&
-              (right is Expression<DateTime>)) {
+          } else if ((left is Expression<DateTime>) && (right is Expression<DateTime>)) {
             left = EqualDateTimeExpression(left, right);
-          } else if ((left is Expression<Duration>) &&
-              (right is Expression<Duration>)) {
+          } else if ((left is Expression<Duration>) && (right is Expression<Duration>)) {
             left = EqualDurationExpression(left, right);
           }
         } else if (item[0].value == '!=') {
           if ((left is Expression<Number>) && (right is Expression<Number>)) {
             left = NegateBoolExpression(EqualNumberExpression(left, right));
-          } else if ((left is Expression<bool>) &&
-              (right is Expression<bool>)) {
+          } else if ((left is Expression<bool>) && (right is Expression<bool>)) {
             left = NegateBoolExpression(EqualBoolExpression(left, right));
-          } else if ((left is Expression<String>) &&
-              (right is Expression<String>)) {
+          } else if ((left is Expression<String>) && (right is Expression<String>)) {
             left = NegateBoolExpression(EqualStringExpression(left, right));
-          } else if ((left is Expression<DateTime>) &&
-              (right is Expression<DateTime>)) {
+          } else if ((left is Expression<DateTime>) && (right is Expression<DateTime>)) {
             left = NegateBoolExpression(EqualDateTimeExpression(left, right));
-          } else if ((left is Expression<Duration>) &&
-              (right is Expression<Duration>)) {
+          } else if ((left is Expression<Duration>) && (right is Expression<Duration>)) {
             left = NegateBoolExpression(EqualDurationExpression(left, right));
           } else {
-            throw UnknownExpressionTypeException(
-                'Unknown equality expression type');
+            throw UnknownExpressionTypeException('Unknown equality expression type');
           }
         }
         return left;
@@ -273,46 +238,37 @@ class ExpressionGrammarParser extends ExpressionGrammarDefinition {
         if (item[0].value == '<') {
           if ((left is Expression<Number>) && (right is Expression<Number>)) {
             left = LessThanNumberExpression(left, right);
-          } else if ((left is Expression<DateTime>) &&
-              (right is Expression<DateTime>)) {
+          } else if ((left is Expression<DateTime>) && (right is Expression<DateTime>)) {
             left = LessThanDateTimeExpression(left, right);
-          } else if ((left is Expression<Duration>) &&
-              (right is Expression<Duration>)) {
+          } else if ((left is Expression<Duration>) && (right is Expression<Duration>)) {
             left = LessThanDurationExpression(left, right);
           }
         } else if (item[0].value == '<=') {
           if ((left is Expression<Number>) && (right is Expression<Number>)) {
             left = LessThanOrEqualNumberExpression(left, right);
-          } else if ((left is Expression<DateTime>) &&
-              (right is Expression<DateTime>)) {
+          } else if ((left is Expression<DateTime>) && (right is Expression<DateTime>)) {
             left = LessThanOrEqualDateTimeExpression(left, right);
-          } else if ((left is Expression<Duration>) &&
-              (right is Expression<Duration>)) {
+          } else if ((left is Expression<Duration>) && (right is Expression<Duration>)) {
             left = LessThanOrEqualDurationExpression(left, right);
           }
         } else if (item[0].value == '>') {
           if ((left is Expression<Number>) && (right is Expression<Number>)) {
             left = LessThanNumberExpression(right, left);
-          } else if ((left is Expression<DateTime>) &&
-              (right is Expression<DateTime>)) {
+          } else if ((left is Expression<DateTime>) && (right is Expression<DateTime>)) {
             left = LessThanDateTimeExpression(right, left);
-          } else if ((left is Expression<Duration>) &&
-              (right is Expression<Duration>)) {
+          } else if ((left is Expression<Duration>) && (right is Expression<Duration>)) {
             left = LessThanDurationExpression(right, left);
           }
         } else if (item[0].value == '>=') {
           if ((left is Expression<Number>) && (right is Expression<Number>)) {
             left = LessThanOrEqualNumberExpression(right, left);
-          } else if ((left is Expression<DateTime>) &&
-              (right is Expression<DateTime>)) {
+          } else if ((left is Expression<DateTime>) && (right is Expression<DateTime>)) {
             left = LessThanOrEqualDateTimeExpression(right, left);
-          } else if ((left is Expression<Duration>) &&
-              (right is Expression<Duration>)) {
+          } else if ((left is Expression<Duration>) && (right is Expression<Duration>)) {
             left = LessThanOrEqualDurationExpression(right, left);
           }
         } else {
-          throw UnknownExpressionTypeException(
-              'Unknown relational expression type');
+          throw UnknownExpressionTypeException('Unknown relational expression type');
         }
         return left;
       });
@@ -328,8 +284,7 @@ class ExpressionGrammarParser extends ExpressionGrammarDefinition {
         }
 
         final parts = c.split('.');
-        final expressionProvider =
-            expressionProviderElementMap.getExpressionProvider(c);
+        final expressionProvider = expressionProviderElementMap.getExpressionProvider(c);
         // if (expressionProviderElement == null) {
         //   throw NullReferenceException(
         //       'Reference named {$elementId} does not exist.');
@@ -355,16 +310,12 @@ class ExpressionGrammarParser extends ExpressionGrammarDefinition {
       });
 
   @override
-  Parser integerNumber() => super
-      .integerNumber()
-      .flatten()
-      .map((c) => ConstantExpression<Integer>(Integer.parse(c)));
+  Parser integerNumber() =>
+      super.integerNumber().flatten().map((c) => ConstantExpression<Integer>(Integer.parse(c)));
 
   @override
-  Parser decimalNumber() => super
-      .decimalNumber()
-      .flatten()
-      .map((c) => ConstantExpression<Decimal>(Decimal.parse(c)));
+  Parser decimalNumber() =>
+      super.decimalNumber().flatten().map((c) => ConstantExpression<Decimal>(Decimal.parse(c)));
 
   @override
   Parser singleLineString() => super
@@ -386,14 +337,13 @@ class ExpressionGrammarParser extends ExpressionGrammarDefinition {
   Parser literal() => super.literal().map((c) => c.value);
 
   @override
-  Parser function() => super.function().map((c) => createFunctionExpression(
-      c[0], c[2] ?? <Expression>[], _expressionFactories));
+  Parser function() => super
+      .function()
+      .map((c) => createFunctionExpression(c[0], c[2] ?? <Expression>[], _expressionFactories));
 
   @override
-  Parser TRUE() =>
-      super.TRUE().map((c) => ConstantExpression<bool>(c.value == 'true'));
+  Parser TRUE() => super.TRUE().map((c) => ConstantExpression<bool>(c.value == 'true'));
 
   @override
-  Parser FALSE() =>
-      super.FALSE().map((c) => ConstantExpression<bool>(c.value != 'false'));
+  Parser FALSE() => super.FALSE().map((c) => ConstantExpression<bool>(c.value != 'false'));
 }

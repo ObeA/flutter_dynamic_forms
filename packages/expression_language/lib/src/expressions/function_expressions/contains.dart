@@ -1,14 +1,14 @@
 import 'package:expression_language/expression_language.dart';
 
 class ContainsFunctionExpression extends Expression<bool> {
-  final Expression<String> value;
+  final Expression<String?> value;
   final Expression<String> searchValue;
 
   ContainsFunctionExpression(this.value, this.searchValue);
 
   @override
   bool evaluate() {
-    return value.evaluate().contains(searchValue.evaluate());
+    return value.evaluate()?.contains(searchValue.evaluate()) == true;
   }
 
   @override

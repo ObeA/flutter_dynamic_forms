@@ -1,14 +1,14 @@
 import 'package:expression_language/expression_language.dart';
 
 class PlusStringExpression extends Expression<String> {
-  final Expression<String> left;
-  final Expression<String> right;
+  final Expression<String?> left;
+  final Expression<String?> right;
 
   PlusStringExpression(this.left, this.right);
 
   @override
   String evaluate() {
-    return left.evaluate() + right.evaluate();
+    return (left.evaluate() ?? '') + (right.evaluate() ?? '');
   }
 
   @override
@@ -21,7 +21,6 @@ class PlusStringExpression extends Expression<String> {
 
   @override
   Expression<String> clone(Map<String, ExpressionProviderElement> elementMap) {
-    return PlusStringExpression(
-        left.clone(elementMap), right.clone(elementMap));
+    return PlusStringExpression(left.clone(elementMap), right.clone(elementMap));
   }
 }

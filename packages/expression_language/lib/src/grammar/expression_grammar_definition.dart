@@ -2,16 +2,14 @@ import 'package:petitparser/petitparser.dart';
 
 class ExpressionGrammarDefinition extends GrammarDefinition {
   @override
-  Parser start() => (ref0(expression).end()).or(ref0(failureState));
+  Parser start() => (ref0(expression).end());
 
   Parser FALSE() => ref1(token, 'false');
   Parser TRUE() => ref1(token, 'true');
   Parser LETTER() => letter();
   Parser DIGIT() => digit();
-  Parser failureState() =>
-      (ref0(expression).trim() & ref0(fail).trim()) | ref0(fail).trim();
-  Parser fail() => any();
   Parser letterOrSpecialChar() => ref0(LETTER) | ref1(token, '_');
+  Parser upperCaseLetterOrSpecialChar() => uppercase() | ref1(token, '_');
 
   Parser decimalNumber() =>
       ref0(DIGIT) &
@@ -21,8 +19,8 @@ class ExpressionGrammarDefinition extends GrammarDefinition {
       ref0(DIGIT).star();
   Parser integerNumber() => ref0(DIGIT) & ref0(DIGIT).star();
   Parser singleLineString() =>
-      char('"') & ref0(stringContent).star() & char('"');
-  Parser stringContent() => pattern('^"');
+      char("'") & ref0(stringContent).star() & char("'");
+  Parser stringContent() => pattern("^'");
   Parser literal() => ref1(
       token,
       ref0(decimalNumber) |
@@ -30,12 +28,16 @@ class ExpressionGrammarDefinition extends GrammarDefinition {
           ref0(TRUE) |
           ref0(FALSE) |
           ref0(singleLineString));
+  Parser functionIdentifier() =>
+      ref0(upperCaseLetterOrSpecialChar) &
+      (ref0(upperCaseLetterOrSpecialChar) | ref0(DIGIT)).star();
+
   Parser identifier() =>
       ref0(letterOrSpecialChar) &
       (ref0(letterOrSpecialChar) | ref0(DIGIT)).star();
 
   Parser function() =>
-      ref0(identifier).flatten() &
+      ref0(functionIdentifier).flatten() &
       ref1(token, '(') &
       ref0(functionParameters).optional() &
       ref1(token, ')');
